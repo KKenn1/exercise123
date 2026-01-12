@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exercise Reminder</title>
+    <style>
+        /* --- VISUALS (Done for you) --- */
+        body { font-family: sans-serif; background: #f4f4f9; display: flex; justify-content: center; padding-top: 50px; }
+        .app { width: 400px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        #status-card { padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; border: 2px solid #ccc; background: #eee; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px; }
+        button { padding: 12px 20px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #555; }
+        .list-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .date { color: #888; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+        <div id="status-card">
+            <h2 id="status-title">Loading...</h2>
+            <p id="status-msg">...</p>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="activity-input" placeholder="What did you do?">
+            <button onclick="addActivity()">Log</button>
+        </div>
+
+        <div id="history-list"></div>
+
+<button onclick="clearHistory()" style="background-color: #ff4444; margin-top: 20px; width: 100%;">
+    Clear All History
+</button>
+    </div>
+
+    <script>
+        // --- YOUR WORKSPACE ---
+
+        // 1. DATA: The "Memory" of the app
+        let savedData = localStorage.getItem("myExercises");
+let activities = savedData ? JSON.parse(savedData) : [
+   // { text: "Dummy Run", date: "2026/01/10" }
+];
+        // 2. SETUP: This draws the list on the screen (I did this for you)
+        function render() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = ""; // Clear list
+            
+            // Loop through data and create HTML
+            activities.forEach(item => {
+                list.innerHTML += `
+                    <div class="list-item">
+                        <span class="date">${item.date}</span>
+                        <span>${item.text}</span>
+                    </div>`;
+            });
+
+            // Update the status box color/text
+            checkStatus(); 
+        }
+        function clearHistory() {
+    // 1. Confirm with the user (Optional but good UX)
+    if (!confirm("Are you sure you want to delete all history?")) return;
+
+    // 2. Clear the browser's memory
+    localStorage.removeItem("myExercises");
+
+    // 3. Clear the app's variable
+    activities = [];
+
+    // 4. Update the screen
+    render();
+}
+        // --- TODO TASK 1: Make the Button Work ---
+        function addActivity() {
+            console.log("Button clicked!"); 
+            const list = document.getElementById('activity-input');
+            let txt=list.value.trim();
+            if(txt==="")return;
+
+            let today=new Date();
+            let dateStr = today.getFullYear() + "/" + String(today.getMonth()+1).padStart(2,"0")+"/"+String(today.getDate()).padStart(2,"0");
+                //String(today.getMonth() + 1).padStart(2, '0') + "/" + 
+              //  String(today.getDate()).padStart(2, '0');
+            
+            let newact ={text:txt,date:dateStr};
+           // activities.unshift(newact);
+            list.value="";
+    //        render();
+
+            activities.unshift(newact);
+
+// --- NEW LINE: Save to browser ---
+localStorage.setItem("myExercises", JSON.stringify(activities));
+
+list.value="";
+render();
+            // 1. Get the input element (document.getElementById)
+            // 2. Get the value inside it (.value)
+            // 3. Create a new object { text: ..., date: ... }
+            // 4. Add it to the 'activities' array (activities.unshift)
+            // 5. Run render() to update the screen
+        }
+
+        // --- TODO TASK 2: Make the Reminder Work ---
+        function checkStatus() {
+             const statusCard = document.getElementById("status-card");
+         //   const list=document.getElementById("status-card");
+          if(activities.length===0){
+             statusCard.style.borderColor = "red";
+    statusCard.style.backgroundColor = "#f8d7da"; // light red
+    statusCard.querySelector("#status-title").textContent = "Inactive!";
+    statusCard.querySelector("#status-msg").textContent = "You haven't logged an activity for days!";
+            return;}
+            let latest=new Date(activities[0].date);
+          //  let latestdate=latest.getDate();
+            let today= new Date();
+          //  if(latest==="")return;
+           let diff=today-latest;
+           let diffday=diff/(1000*60*60*24);
+
+           if (diffday >=3) {
+    statusCard.style.borderColor = "red";
+    statusCard.style.backgroundColor = "#f8d7da"; // light red
+    statusCard.querySelector("#status-title").textContent = "Inactive!";
+    statusCard.querySelector("#status-msg").textContent = "You haven't logged an activity in 3+ days!";
+} else {
+    statusCard.style.borderColor = "green";
+    statusCard.style.backgroundColor = "#d4edda"; // light green
+    statusCard.querySelector("#status-title").textContent = "Active!";
+    statusCard.querySelector("#status-msg").textContent = "Good job! Keep logging activities!";
+}
+
+            // 1. Get the status card element
+            // 2. Check the date of the first activity
+            // 3. If it's old, turn the card RED. If new, turn GREEN.
+        }
+
+        // Run once on load
+        render();
+    </script>
+</body>
+</html>
